@@ -58,8 +58,6 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
-            /* Ajout pour le débogage */
-            background-color: rgba(255, 255, 0, 0.2);
         }
 
         .brick {
@@ -215,15 +213,11 @@
         <p>&copy; Mon Jeu de Réflexe</p>
     </footer>
 
-    <audio id="successSound" src="success.mp3" preload="auto"></audio>
-    <audio id="errorSound" src="error.mp3" preload="auto"></audio>
-    <audio id="joySound" src="joy.mp3" preload="auto"></audio>
-    <audio id="alertSound" src="alert.mp3" preload="auto"></audio>
-
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script>
-         const firebaseConfig = {
+        // Configuration Firebase
+        var firebaseConfig = {
             apiKey: "AIzaSyDHC_PNIt5NU98c2fazaos0PJ1f8DodFKM",
             authDomain: "tennis-performance-nicoach.firebaseapp.com",
             databaseURL: "https://tennis-performance-nicoach-default-rtdb.europe-west1.firebasedatabase.app",
@@ -234,62 +228,45 @@
             measurementId: "G-ZGZL2PGW09"
         };
 
+        // Initialiser Firebase
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
+        var db = firebase.database();
 
-        const gameScreen = document.getElementById('gameScreen');
-        const averageReactionTime = document.getElementById('averageReactionTime');
-        const recordReactionTime = document.getElementById('recordReactionTime');
-        const successCount = document.getElementById('successCount');
-        const errorCount = document.getElementById('errorCount');
-        const startButton = document.getElementById('startButton');
-        const successSound = document.getElementById('successSound');
-        const errorSound = document.getElementById('errorSound');
-        const joySound = document.getElementById('joySound');
-        const alertSound = document.getElementById('alertSound');
-        const timeLeftDisplay = document.getElementById('timeLeft');
-        const difficultySelect = document.getElementById('difficultySelect');
-        const volumeSlider = document.getElementById('volumeSlider');
-        const brickContainer = document.getElementById('brickContainer');
-        const topPlayersList = document.getElementById('topPlayersList');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const restartButton = document.getElementById('restartButton');
+        // Obtenir les éléments HTML
+        var gameScreen = document.getElementById('gameScreen');
+        var averageReactionTime = document.getElementById('averageReactionTime');
+        var recordReactionTime = document.getElementById('recordReactionTime');
+        var successCount = document.getElementById('successCount');
+        var errorCount = document.getElementById('errorCount');
+        var startButton = document.getElementById('startButton');
+        var timeLeftDisplay = document.getElementById('timeLeft');
+        var difficultySelect = document.getElementById('difficultySelect');
+        var volumeSlider = document.getElementById('volumeSlider');
+        var brickContainer = document.getElementById('brickContainer');
+        var topPlayersList = document.getElementById('topPlayersList');
+        var gameOverScreen = document.getElementById('gameOverScreen');
+        var restartButton = document.getElementById('restartButton');
 
-        let startTime;
-        let reactionTimes = [];
-        let successes = 0;
-        let errors = 0;
-        let gameRunning = false;
-        let playerName;
-        let gameDuration = 30; // Durée du jeu en secondes
-        let timerInterval;
-        let difficulty = "normal";
-        let bricks = [];
-        let pointCreationTime; // Temps de création du point
-        let bestReactionTime = Infinity; // Initialiser avec l'infini
-        let audioLoadedCount = 0;
+        // Variables du jeu
+        var startTime;
+        var reactionTimes = [];
+        var successes = 0;
+        var errors = 0;
+        var gameRunning = false;
+        var playerName;
+        var gameDuration = 30; // Durée du jeu en secondes
+        var timerInterval;
+        var difficulty = "normal";
+        var bricks = [];
+        var pointCreationTime; // Temps de création du point
+        var bestReactionTime = Infinity; // Initialiser avec l'infini
 
-        // Fonction pour vérifier si tous les audios sont chargés
-        function checkAllAudiosLoaded() {
-            audioLoadedCount++;
-            if (audioLoadedCount === 4) {
-                console.log("Tous les audios sont chargés !");
-                startButton.disabled = false; // Activer le bouton de démarrage
-            }
+        // Fonction de débogage
+        function debug(message) {
+            console.log("[DEBUG] " + message);
         }
 
-        // Charger les fichiers audio de manière asynchrone
-        function loadAudio(audio, url) {
-            audio.src = url;
-            audio.addEventListener('canplaythrough', checkAllAudiosLoaded);
-            audio.addEventListener('error', () => console.error('Erreur lors du chargement de l\'audio : ' + url));
-        }
-
-        loadAudio(successSound, 'success.mp3');
-        loadAudio(errorSound, 'error.mp3');
-        loadAudio(joySound, 'joy.mp3');
-        loadAudio(alertSound, 'alert.mp3');
-
+        // Fonction pour demander le nom du joueur
         function askName() {
             playerName = prompt("Entrez votre nom :");
             if (!playerName) {
@@ -297,27 +274,28 @@
             }
         }
 
+        // Fonction pour créer un point
         function createPoint() {
             if (!gameRunning) return;
 
-            const point = document.createElement('div');
-            point.classList.add('point');
+            var point = document.createElement('div');
+            point.className = 'point';
 
             // Choisir aléatoirement vert ou rouge
-            const isGreen = Math.random() < 0.5;
+            var isGreen = Math.random() < 0.5;
             if (isGreen) {
-                point.classList.add('green');
+                point.className += ' green';
             } else {
-                point.classList.add('red');
+                point.className += ' red';
             }
 
             // Position aléatoire
-            const screenWidth = gameScreen.offsetWidth;
-            const screenHeight = gameScreen.offsetHeight;
-            const pointSize = 30;
+            var screenWidth = gameScreen.offsetWidth;
+            var screenHeight = gameScreen.offsetHeight;
+            var pointSize = 30;
 
-            const maxX = screenWidth - pointSize;
-            const maxY = screenHeight - pointSize;
+            var maxX = screenWidth - pointSize;
+            var maxY = screenHeight - pointSize;
 
             point.style.top = Math.random() * maxY + 'px';
             point.style.left = Math.random() * maxX + 'px';
@@ -327,8 +305,8 @@
 
             if (!isGreen) {
                 // Faire disparaître le point rouge après un délai aléatoire entre 3 et 6 secondes
-                const disappearTime = (Math.random() * 3 + 3) * 1000;
-                setTimeout(() => {
+                var disappearTime = (Math.random() * 3 + 3) * 1000;
+                setTimeout(function() {
                     if (point && point.parentNode === gameScreen) {
                         gameScreen.removeChild(point);
                         if (gameRunning) {
@@ -338,17 +316,20 @@
                 }, disappearTime);
             }
 
-            point.addEventListener('click', (e) => pointClicked(e, isGreen, point));
+            point.addEventListener('click', function(e) {
+                pointClicked(e, isGreen, point);
+            });
             gameScreen.appendChild(point);
             return point;
         }
 
+        // Fonction pour gérer le clic sur un point
         function pointClicked(e, isGreen, point) {
             if (!gameRunning) return;
 
             if (isGreen) {
                 // Calculer le temps de réaction à partir du temps de création du point
-                const reactionTime = new Date().getTime() - pointCreationTime;
+                var reactionTime = new Date().getTime() - pointCreationTime;
                 reactionTimes.push(reactionTime);
                 successes++;
 
@@ -358,38 +339,25 @@
                 }
 
                 updateScore();
-                point.classList.add('success');
+                point.className += ' success';
 
-                // Jouer le son joyeux
-                joySound.play();
-
-                setTimeout(() => {
-                    point.remove();
-                    if (gameRunning) {
-                        createPoint();
-                    }
-                    addBrick();
-                }, 200);
             } else {
                 errors++;
                 updateScore();
-                // Jouer le son d'alerte
-                alertSound.play();
-                point.remove();
-                collapseBricks();
                 endGame(true); // Terminer le jeu si un point rouge est touché
             }
         }
 
+        // Fonction pour mettre à jour le score
         function updateScore() {
             // Calculer le temps de réaction moyen (uniquement pour les points verts)
-            let total = 0;
-            let greenPointCount = 0;
-            for (let i = 0; i < reactionTimes.length; i++) {
+            var total = 0;
+            var greenPointCount = 0;
+            for (var i = 0; i < reactionTimes.length; i++) {
                 total += reactionTimes[i];
                 greenPointCount++;
             }
-            let avg = greenPointCount > 0 ? total / greenPointCount : 0;
+            var avg = greenPointCount > 0 ? total / greenPointCount : 0;
 
             averageReactionTime.innerText = avg.toFixed(0);
             successCount.innerText = successes;
@@ -413,7 +381,9 @@
             updateTopPlayers();
         }
 
+        // Fonction pour démarrer le jeu
         function startGame() {
+            debug("Démarrage du jeu");
             askName();
             gameRunning = true;
             startTime = new Date().getTime();
@@ -429,9 +399,9 @@
             createPoint();
 
             // Démarrer le chronomètre
-            let timeLeft = gameDuration;
+            var timeLeft = gameDuration;
             timeLeftDisplay.innerText = timeLeft;
-            timerInterval = setInterval(() => {
+            timerInterval = setInterval(function() {
                 timeLeft--;
                 timeLeftDisplay.innerText = timeLeft;
                 if (timeLeft <= 0) {
@@ -440,6 +410,7 @@
             }, 1000);
         }
 
+        // Fonction pour terminer le jeu
         function endGame(redPointTouched) {
             gameRunning = false;
             clearInterval(timerInterval);
@@ -452,12 +423,61 @@
             }
         }
 
-        startButton.addEventListener('click', startGame);
+        // Ajouter un gestionnaire d'événements au bouton de démarrage
+        startButton.onclick = startGame;
 
-        // Rejouer
-        restartButton.addEventListener('click', () => {
+        // Ajouter un gestionnaire d'événements au bouton Rejouer
+        restartButton.onclick = function() {
             startGame();
-        });
+        };
 
-        // Volume Control
-        volumeSlider.addEventListener('input',
+        // Fonction pour ajouter une brique
+        function addBrick() {
+            var brick = document.createElement('div');
+            brick.className = 'brick';
+            brickContainer.appendChild(brick);
+            bricks.push(brick);
+
+            // Positionner les briques de manière décalée
+            var brickCount = bricks.length;
+            brick.style.marginLeft = (brickCount % 2 === 0 ? 10 : -10) + 'px';
+        }
+
+        // Fonction pour faire écrouler les briques
+        function collapseBricks() {
+            for (var i = 0; i < bricks.length; i++) {
+                bricks[i].className += ' collapse';
+            }
+
+            setTimeout(function() {
+                brickContainer.innerHTML = '';
+                bricks = [];
+            }, 500);
+        }
+
+        function updateTopPlayers() {
+            db.ref('records').orderByChild('bestReactionTime').limitToFirst(3).once('value', function(snapshot) {
+                var players = snapshot.val();
+                var topPlayers = [];
+
+                if (players) {
+                    for (var key in players) {
+                        topPlayers.push(players[key]);
+                    }
+
+                    // Trier les joueurs par meilleur temps de réaction (du plus rapide au plus lent)
+                    topPlayers.sort(function(a, b) {
+                        return a.bestReactionTime - b.bestReactionTime;
+                    });
+
+                    // Mettre à jour l'affichage des meilleurs joueurs
+                    var topPlayersListItems = topPlayersList.querySelectorAll('li');
+                    for (var i = 0; i < topPlayersListItems.length; i++) {
+                        if (topPlayers[i]) {
+                            topPlayersListItems[i].innerText = topPlayers[i].name + ": " + topPlayers[i].bestReactionTime + " ms";
+                        } else {
+                            topPlayersListItems[i].innerText = "N/A";
+                        }
+                    }
+                } else {
+                    // S'il n'y a pas de
