@@ -12,14 +12,14 @@
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #ADD8E6;
-            margin: 0; /* Supprimer les marges par défaut */
+            margin: 0;
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2%; /* Utiliser des pourcentages */
+            padding: 2%;
             background-color: #f0f0f0;
         }
 
@@ -41,31 +41,31 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 2%; /* Utiliser des pourcentages */
+            padding: 2%;
         }
 
         #gameScreen {
-            width: 90%; /* Utiliser une grande partie de la largeur */
-            max-width: 600px; /* Limiter la largeur sur les écrans plus grands */
-            height: 50vh; /* Utiliser la hauteur de la vue */
+            width: 90%;
+            max-width: 600px;
+            height: 50vh;
             border: 1px solid black;
             position: relative;
             overflow: hidden;
-            margin-bottom: 2%; /* Utiliser des pourcentages */
+            margin-bottom: 2%;
         }
 
         #controls, #score {
-            width: 90%; /* Utiliser une grande partie de la largeur */
+            width: 90%;
             max-width: 400px;
-            padding: 2%; /* Utiliser des pourcentages */
+            padding: 2%;
             border: 1px solid #ccc;
             color: #000;
-            margin-bottom: 2%; /* Utiliser des pourcentages */
+            margin-bottom: 2%;
         }
 
         .point {
-            width: 5%; /* Taille relative à l'écran */
-            height: 5%; /* Taille relative à l'écran */
+            width: 5%;
+            height: 5%;
             border-radius: 50%;
             position: absolute;
             cursor: pointer;
@@ -85,31 +85,31 @@
         }
 
         #difficulty, #volumeControl {
-            margin-top: 2%; /* Utiliser des pourcentages */
+            margin-top: 2%;
             color: #000;
         }
 
         #topPlayers {
-            margin-top: 2%; /* Utiliser des pourcentages */
+            margin-top: 2%;
             border: 1px solid #ccc;
-            padding: 2%; /* Utiliser des pourcentages */
-            width: 90%; /* Utiliser une grande partie de la largeur */
+            padding: 2%;
+            width: 90%;
             max-width: 400px;
             margin-left: auto;
             margin-right: auto;
         }
 
         #topPlayers h2 {
-            margin-bottom: 1%; /* Utiliser des pourcentages */
+            margin-bottom: 1%;
         }
 
         #topPlayers ol {
             list-style-type: decimal;
-            padding-left: 4%; /* Utiliser des pourcentages */
+            padding-left: 4%;
         }
 
         #topPlayers li {
-            margin-bottom: 1%; /* Utiliser des pourcentages */
+            margin-bottom: 1%;
         }
 
         #gameOverScreen {
@@ -127,8 +127,8 @@
         }
 
         #gameOverScreen img {
-            width: 50%; /* Image adaptative */
-            max-width: 200px; /* Limite de taille */
+            width: 50%;
+            max-width: 200px;
         }
     </style>
 </head>
@@ -233,12 +233,12 @@
         var errors = 0;
         var gameRunning = false;
         var playerName;
-        var gameDuration = 30; // Durée du jeu en secondes
+        var gameDuration = 30;
         var timeLeft = gameDuration; // Déclarer ici
         var timerInterval;
         var difficulty = "normal";
-        var pointCreationTime; // Temps de création du point
-        var bestReactionTime = Infinity; // Initialiser avec l'infini
+        var pointCreationTime;
+        var bestReactionTime = Infinity;
 
         // Fonction pour demander le nom du joueur
         function askName() {
@@ -255,7 +255,6 @@
             var point = document.createElement('div');
             point.className = 'point';
 
-            // Choisir aléatoirement vert ou rouge
             var isGreen = Math.random() < 0.5;
             if (isGreen) {
                 point.className += ' green';
@@ -263,7 +262,6 @@
                 point.className += ' red';
             }
 
-            // Position aléatoire
             var screenWidth = gameScreen.offsetWidth;
             var screenHeight = gameScreen.offsetHeight;
             var pointSize = 30;
@@ -274,17 +272,15 @@
             point.style.top = Math.random() * maxY + 'px';
             point.style.left = Math.random() * maxX + 'px';
 
-            // Enregistrer le temps de création du point
             pointCreationTime = new Date().getTime();
 
             if (!isGreen) {
-                // Faire disparaître le point rouge après un délai aléatoire entre 3 et 6 secondes
                 var disappearTime = (Math.random() * 3 + 3) * 1000;
                 setTimeout(function() {
                     if (point && point.parentNode === gameScreen) {
                         gameScreen.removeChild(point);
                         if (gameRunning) {
-                            createPoint(); // Créer un nouveau point
+                            createPoint();
                         }
                     }
                 }, disappearTime);
@@ -315,7 +311,7 @@
             } else {
                 errors++;
                 updateScore();
-                endGame(true); // Terminer le jeu si un point rouge est touché
+                endGame(true);
             }
         }
 
@@ -331,21 +327,18 @@
             successCount.innerText = successes;
             errorCount.innerText = errors;
 
-            // Afficher le meilleur temps de réaction
             recordReactionTime.innerText = bestReactionTime === Infinity ? "N/A" : bestReactionTime.toFixed(0) + " ms";
 
-            // Mettre à jour le record dans Firebase
             if (playerName) {
                 db.ref('records').child(playerName).set({
                     averageReactionTime: avg.toFixed(0),
-                    bestReactionTime: bestReactionTime === Infinity ? 0 : bestReactionTime.toFixed(0), // Enregistrer le meilleur temps
+                    bestReactionTime: bestReactionTime === Infinity ? 0 : bestReactionTime.toFixed(0),
                     successCount: successes,
                     errorCount: errors,
                     name: playerName
                 });
             }
 
-            // Mettre à jour le classement des meilleurs joueurs
             updateTopPlayers();
         }
 
@@ -358,21 +351,20 @@
             reactionTimes = [];
             successes = 0;
             errors = 0;
-            bestReactionTime = Infinity; // Réinitialiser le meilleur temps
+            bestReactionTime = Infinity;
             updateScore();
             gameScreen.innerHTML = '';
             gameScreen.style.backgroundColor = "white";
-            gameOverScreen.style.display = 'none'; // Cacher l'écran de fin de jeu
+            gameOverScreen.style.display = 'none';
             createPoint();
 
-            // Démarrer le chronomètre
             timeLeft = gameDuration; // Réinitialiser ici
             timeLeftDisplay.innerText = timeLeft;
             timerInterval = setInterval(function() {
                 timeLeft--;
                 timeLeftDisplay.innerText = timeLeft;
                 if (timeLeft <= 0) {
-                    endGame(false); // Terminer le jeu normalement
+                    endGame(false);
                 }
             }, 1000);
         }
@@ -383,7 +375,6 @@
             clearInterval(timerInterval);
 
             if (redPointTouched) {
-                // Afficher l'écran de fin de jeu
                 gameOverScreen.style.display = 'flex';
                 gameScreen.style.backgroundColor = "red"
             } else {
@@ -408,4 +399,36 @@
                 var topPlayers = [];
 
                 if (players) {
-                    for (var
+                    for (var key in players) {
+                        topPlayers.push(players[key]);
+                    }
+
+                    topPlayers.sort(function(a, b) {
+                        return a.bestReactionTime - b.bestReactionTime;
+                    });
+
+                    var topPlayersListItems = topPlayersList.querySelectorAll('li');
+                    for (var i = 0; i < topPlayersListItems.length; i++) {
+                        if (topPlayers[i]) {
+                            topPlayersListItems[i].innerText = topPlayers[i].name + ": " + topPlayers[i].bestReactionTime + " ms";
+                        } else {
+                            topPlayersListItems[i].innerText = "N/A";
+                        }
+                    }
+                } else {
+                    var topPlayersListItems = topPlayersList.querySelectorAll('li');
+                    for (var i = 0; i < topPlayersListItems.length; i++) {
+                        topPlayersListItems[i].innerText = "N/A";
+                    }
+                }
+            });
+        }
+
+        updateTopPlayers();
+
+        function debug(message) {
+            console.log("[DEBUG] " + message);
+        }
+    </script>
+</body>
+</html>
