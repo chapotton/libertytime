@@ -8,7 +8,7 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <title>Test de Réflexe</title>
     <style>
-      body {
+        body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #ADD8E6;
@@ -38,17 +38,19 @@
 
         main {
             display: flex;
-            justify-content: space-around;
-            align-items: flex-start;
+            flex-direction: column; /* Modifier pour l'affichage vertical */
+            align-items: center; /* Centrer les éléments */
             padding: 20px;
         }
 
         #gameScreen {
-            width: 60%;
-            height: 500px;
+            width: 100%; /* Utiliser toute la largeur disponible */
+            max-width: 600px; /* Limiter la largeur sur les écrans plus grands */
+            height: 400px;
             border: 1px solid black;
             position: relative;
             overflow: hidden;
+            margin-bottom: 20px; /* Espacement */
         }
 
         #brickContainer {
@@ -73,10 +75,12 @@
         }
 
         #controls, #score {
-            width: 20%;
+            width: 80%; /* Utiliser une grande partie de la largeur */
+            max-width: 400px;
             padding: 10px;
             border: 1px solid #ccc;
             color: #000;
+            margin-bottom: 10px; /* Espacement */
         }
 
         .point {
@@ -110,6 +114,7 @@
             border: 1px solid #ccc;
             padding: 10px;
             width: 80%;
+            max-width: 400px;
             margin-left: auto;
             margin-right: auto;
         }
@@ -216,7 +221,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script>
-          const firebaseConfig = {
+        const firebaseConfig = {
             apiKey: "AIzaSyDHC_PNIt5NU98c2fazaos0PJ1f8DodFKM",
             authDomain: "tennis-performance-nicoach.firebaseapp.com",
             databaseURL: "https://tennis-performance-nicoach-default-rtdb.europe-west1.firebasedatabase.app",
@@ -468,14 +473,4 @@
         }
 
         function updateTopPlayers() {
-            db.ref('records').orderByChild('bestReactionTime').limitToFirst(3).once('value', (snapshot) => {
-                const players = snapshot.val();
-                const topPlayers = [];
-
-                if (players) {
-                    for (let key in players) {
-                        topPlayers.push(players[key]);
-                    }
-
-                    // Trier les joueurs par meilleur temps de réaction (du plus rapide au plus lent)
-                    topPlayers.sort((a,
+            db.ref('records').orderByChild('bestReactionTime
