@@ -106,7 +106,7 @@
 
         #difficulty, #volumeControl {
             margin-top: 10px;
-            color: #000;
+            color: #000; /* Assurer la visibilité de l'écriture */
         }
 
         #topPlayers {
@@ -431,46 +431,4 @@
         startButton.addEventListener('click', startGame);
 
         // Rejouer
-        restartButton.addEventListener('click', () => {
-            startGame();
-        });
-
-        // Volume Control
-        volumeSlider.addEventListener('input', function() {
-            successSound.volume = this.value;
-            errorSound.volume = this.value;
-            joySound.volume = this.value;
-            alertSound.volume = this.value;
-        });
-
-        // Difficulty Level
-        difficultySelect.addEventListener('change', function() {
-            difficulty = this.value;
-            // Implement difficulty logic here (e.g., change speed, point size, etc.)
-            console.log("Difficulty changed to: " + difficulty);
-        });
-
-        function addBrick() {
-            const brick = document.createElement('div');
-            brick.classList.add('brick');
-            brickContainer.appendChild(brick);
-            bricks.push(brick);
-
-            // Positionner les briques de manière décalée
-            const brickCount = bricks.length;
-            brick.style.marginLeft = (brickCount % 2 === 0 ? 10 : -10) + 'px';
-        }
-
-        function collapseBricks() {
-            bricks.forEach(brick => {
-                brick.classList.add('collapse');
-            });
-
-            setTimeout(() => {
-                brickContainer.innerHTML = '';
-                bricks = [];
-            }, 500);
-        }
-
-        function updateTopPlayers() {
-            db.ref('records').orderByChild('bestReactionTime
+        restart
