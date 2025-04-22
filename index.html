@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Réflexe</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+<body>
+    <div id="gameScreen"></div>
+    <div id="score">
+        Temps de réaction moyen: <span id="averageReactionTime">0</span> ms<br>
+        Record: <span id="recordReactionTime">N/A</span> ms<br>
+        Succès: <span id="successCount">0</span><br>
+        Erreurs: <span id="errorCount">0</span>
+    </div>
+    <button id="startButton">Démarrer</button>
+    <audio id="successSound" src="success.mp3" preload="auto"></audio>
+    <audio id="errorSound" src="error.mp3" preload="auto"></audio>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
