@@ -12,13 +12,14 @@
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #ADD8E6;
+            margin: 0; /* Supprimer les marges par défaut */
         }
 
         header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px;
+            padding: 2%; /* Utiliser des pourcentages */
             background-color: #f0f0f0;
         }
 
@@ -38,54 +39,33 @@
 
         main {
             display: flex;
-            flex-direction: column; /* Modifier pour l'affichage vertical */
-            align-items: center; /* Centrer les éléments */
-            padding: 20px;
+            flex-direction: column;
+            align-items: center;
+            padding: 2%; /* Utiliser des pourcentages */
         }
 
         #gameScreen {
-            width: 100%; /* Utiliser toute la largeur disponible */
+            width: 90%; /* Utiliser une grande partie de la largeur */
             max-width: 600px; /* Limiter la largeur sur les écrans plus grands */
-            height: 400px;
+            height: 50vh; /* Utiliser la hauteur de la vue */
             border: 1px solid black;
             position: relative;
             overflow: hidden;
-            margin-bottom: 20px; /* Espacement */
-        }
-
-        #brickContainer {
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .brick {
-            width: 40px;
-            height: 20px;
-            background-color: #8B4513;
-            margin-bottom: 2px;
-            box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-            transition: all 0.5s ease;
-        }
-
-        .brick.collapse {
-            transform: rotate(30deg) translateX(50px);
-            opacity: 0;
+            margin-bottom: 2%; /* Utiliser des pourcentages */
         }
 
         #controls, #score {
-            width: 80%; /* Utiliser une grande partie de la largeur */
+            width: 90%; /* Utiliser une grande partie de la largeur */
             max-width: 400px;
-            padding: 10px;
+            padding: 2%; /* Utiliser des pourcentages */
             border: 1px solid #ccc;
             color: #000;
-            margin-bottom: 10px; /* Espacement */
+            margin-bottom: 2%; /* Utiliser des pourcentages */
         }
 
         .point {
-            width: 30px;
-            height: 30px;
+            width: 5%; /* Taille relative à l'écran */
+            height: 5%; /* Taille relative à l'écran */
             border-radius: 50%;
             position: absolute;
             cursor: pointer;
@@ -105,31 +85,31 @@
         }
 
         #difficulty, #volumeControl {
-            margin-top: 10px;
-            color: #000; /* Assurer la visibilité de l'écriture */
+            margin-top: 2%; /* Utiliser des pourcentages */
+            color: #000;
         }
 
         #topPlayers {
-            margin-top: 20px;
+            margin-top: 2%; /* Utiliser des pourcentages */
             border: 1px solid #ccc;
-            padding: 10px;
-            width: 80%;
+            padding: 2%; /* Utiliser des pourcentages */
+            width: 90%; /* Utiliser une grande partie de la largeur */
             max-width: 400px;
             margin-left: auto;
             margin-right: auto;
         }
 
         #topPlayers h2 {
-            margin-bottom: 10px;
+            margin-bottom: 1%; /* Utiliser des pourcentages */
         }
 
         #topPlayers ol {
             list-style-type: decimal;
-            padding-left: 20px;
+            padding-left: 4%; /* Utiliser des pourcentages */
         }
 
         #topPlayers li {
-            margin-bottom: 5px;
+            margin-bottom: 1%; /* Utiliser des pourcentages */
         }
 
         #gameOverScreen {
@@ -147,7 +127,8 @@
         }
 
         #gameOverScreen img {
-            width: 200px;
+            width: 50%; /* Image adaptative */
+            max-width: 200px; /* Limite de taille */
         }
     </style>
 </head>
@@ -166,7 +147,6 @@
 
     <main>
         <div id="gameScreen" aria-label="Zone de jeu">
-            <div id="brickContainer"></div>
         </div>
 
         <aside id="controls">
@@ -239,10 +219,9 @@
         var successCount = document.getElementById('successCount');
         var errorCount = document.getElementById('errorCount');
         var startButton = document.getElementById('startButton');
-        var timeLeftDisplay = document.getElementById('timeLeft');
+        var timeLeftDisplay = document.getElementById('timeLeftDisplay');
         var difficultySelect = document.getElementById('difficultySelect');
         var volumeSlider = document.getElementById('volumeSlider');
-        var brickContainer = document.getElementById('brickContainer');
         var topPlayersList = document.getElementById('topPlayersList');
         var gameOverScreen = document.getElementById('gameOverScreen');
         var restartButton = document.getElementById('restartButton');
@@ -257,14 +236,8 @@
         var gameDuration = 30; // Durée du jeu en secondes
         var timerInterval;
         var difficulty = "normal";
-        var bricks = [];
         var pointCreationTime; // Temps de création du point
         var bestReactionTime = Infinity; // Initialiser avec l'infini
-
-        // Fonction de débogage
-        function debug(message) {
-            console.log("[DEBUG] " + message);
-        }
 
         // Fonction pour demander le nom du joueur
         function askName() {
@@ -393,8 +366,7 @@
             bestReactionTime = Infinity; // Réinitialiser le meilleur temps
             updateScore();
             gameScreen.innerHTML = '';
-            brickContainer.innerHTML = '';
-            bricks = [];
+            gameScreen.style.backgroundColor = "white";
             gameOverScreen.style.display = 'none'; // Cacher l'écran de fin de jeu
             createPoint();
 
@@ -418,45 +390,25 @@
             if (redPointTouched) {
                 // Afficher l'écran de fin de jeu
                 gameOverScreen.style.display = 'flex';
+                gameScreen.style.backgroundColor = "red"
             } else {
                 alert("Temps écoulé ! Votre score a été enregistré.");
+                gameScreen.style.backgroundColor = "green"
             }
         }
 
         // Ajouter un gestionnaire d'événements au bouton de démarrage
-        startButton.onclick = startGame;
+        startButton.onclick = function() {
+            startGame();
+        };
 
         // Ajouter un gestionnaire d'événements au bouton Rejouer
         restartButton.onclick = function() {
             startGame();
         };
 
-        // Fonction pour ajouter une brique
-        function addBrick() {
-            var brick = document.createElement('div');
-            brick.className = 'brick';
-            brickContainer.appendChild(brick);
-            bricks.push(brick);
-
-            // Positionner les briques de manière décalée
-            var brickCount = bricks.length;
-            brick.style.marginLeft = (brickCount % 2 === 0 ? 10 : -10) + 'px';
-        }
-
-        // Fonction pour faire écrouler les briques
-        function collapseBricks() {
-            for (var i = 0; i < bricks.length; i++) {
-                bricks[i].className += ' collapse';
-            }
-
-            setTimeout(function() {
-                brickContainer.innerHTML = '';
-                bricks = [];
-            }, 500);
-        }
-
         function updateTopPlayers() {
-            db.ref('records').orderByChild('bestReactionTime').limitToFirst(3).once('value', function(snapshot) {
+            db.ref('records').orderByChild('bestReactionTime').limitToFirst(3).on('value', function(snapshot) {
                 var players = snapshot.val();
                 var topPlayers = [];
 
@@ -480,4 +432,22 @@
                         }
                     }
                 } else {
-                    // S'il n'y a pas de
+                    // S'il n'y a pas de joueurs enregistrés
+                    var topPlayersListItems = topPlayersList.querySelectorAll('li');
+                    for (var i = 0; i < topPlayersListItems.length; i++) {
+                        topPlayersListItems[i].innerText = "N/A";
+                    }
+                }
+            });
+        }
+
+        // Charger les meilleurs joueurs au chargement de la page
+        updateTopPlayers();
+
+        // Fonction de débogage
+        function debug(message) {
+            console.log("[DEBUG] " + message);
+        }
+    </script>
+</body>
+</html>
