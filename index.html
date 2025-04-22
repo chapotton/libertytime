@@ -141,7 +141,7 @@
             Record: <span id="recordReactionTime">N/A</span> ms
         </div>
         <div id="headerRight">
-            Temps restant: <span id="timeLeft">30</span> s
+            Temps restant: <span id="timeLeftDisplay">30</span> s
         </div>
     </header>
 
@@ -234,6 +234,7 @@
         var gameRunning = false;
         var playerName;
         var gameDuration = 30; // Durée du jeu en secondes
+        var timeLeft = gameDuration; // Déclarer ici
         var timerInterval;
         var difficulty = "normal";
         var pointCreationTime; // Temps de création du point
@@ -301,19 +302,16 @@
             if (!gameRunning) return;
 
             if (isGreen) {
-                // Calculer le temps de réaction à partir du temps de création du point
                 var reactionTime = new Date().getTime() - pointCreationTime;
                 reactionTimes.push(reactionTime);
-                successes++;
 
-                // Mettre à jour le meilleur temps de réaction
                 if (reactionTime < bestReactionTime) {
                     bestReactionTime = reactionTime;
                 }
 
+                successes++;
                 updateScore();
                 point.className += ' success';
-
             } else {
                 errors++;
                 updateScore();
@@ -323,14 +321,11 @@
 
         // Fonction pour mettre à jour le score
         function updateScore() {
-            // Calculer le temps de réaction moyen (uniquement pour les points verts)
             var total = 0;
-            var greenPointCount = 0;
             for (var i = 0; i < reactionTimes.length; i++) {
                 total += reactionTimes[i];
-                greenPointCount++;
             }
-            var avg = greenPointCount > 0 ? total / greenPointCount : 0;
+            var avg = reactionTimes.length > 0 ? total / reactionTimes.length : 0;
 
             averageReactionTime.innerText = avg.toFixed(0);
             successCount.innerText = successes;
@@ -371,7 +366,7 @@
             createPoint();
 
             // Démarrer le chronomètre
-            var timeLeft = gameDuration;
+            timeLeft = gameDuration; // Réinitialiser ici
             timeLeftDisplay.innerText = timeLeft;
             timerInterval = setInterval(function() {
                 timeLeft--;
@@ -413,41 +408,4 @@
                 var topPlayers = [];
 
                 if (players) {
-                    for (var key in players) {
-                        topPlayers.push(players[key]);
-                    }
-
-                    // Trier les joueurs par meilleur temps de réaction (du plus rapide au plus lent)
-                    topPlayers.sort(function(a, b) {
-                        return a.bestReactionTime - b.bestReactionTime;
-                    });
-
-                    // Mettre à jour l'affichage des meilleurs joueurs
-                    var topPlayersListItems = topPlayersList.querySelectorAll('li');
-                    for (var i = 0; i < topPlayersListItems.length; i++) {
-                        if (topPlayers[i]) {
-                            topPlayersListItems[i].innerText = topPlayers[i].name + ": " + topPlayers[i].bestReactionTime + " ms";
-                        } else {
-                            topPlayersListItems[i].innerText = "N/A";
-                        }
-                    }
-                } else {
-                    // S'il n'y a pas de joueurs enregistrés
-                    var topPlayersListItems = topPlayersList.querySelectorAll('li');
-                    for (var i = 0; i < topPlayersListItems.length; i++) {
-                        topPlayersListItems[i].innerText = "N/A";
-                    }
-                }
-            });
-        }
-
-        // Charger les meilleurs joueurs au chargement de la page
-        updateTopPlayers();
-
-        // Fonction de débogage
-        function debug(message) {
-            console.log("[DEBUG] " + message);
-        }
-    </script>
-</body>
-</html>
+                    for (var
