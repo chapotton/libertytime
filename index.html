@@ -58,6 +58,8 @@
             bottom: 0;
             left: 50%;
             transform: translateX(-50%);
+            /* Ajout pour le débogage */
+            background-color: rgba(255, 255, 0, 0.2);
         }
 
         .brick {
@@ -221,7 +223,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script>
-        const firebaseConfig = {
+         const firebaseConfig = {
             apiKey: "AIzaSyDHC_PNIt5NU98c2fazaos0PJ1f8DodFKM",
             authDomain: "tennis-performance-nicoach.firebaseapp.com",
             databaseURL: "https://tennis-performance-nicoach-default-rtdb.europe-west1.firebasedatabase.app",
@@ -265,6 +267,28 @@
         let bricks = [];
         let pointCreationTime; // Temps de création du point
         let bestReactionTime = Infinity; // Initialiser avec l'infini
+        let audioLoadedCount = 0;
+
+        // Fonction pour vérifier si tous les audios sont chargés
+        function checkAllAudiosLoaded() {
+            audioLoadedCount++;
+            if (audioLoadedCount === 4) {
+                console.log("Tous les audios sont chargés !");
+                startButton.disabled = false; // Activer le bouton de démarrage
+            }
+        }
+
+        // Charger les fichiers audio de manière asynchrone
+        function loadAudio(audio, url) {
+            audio.src = url;
+            audio.addEventListener('canplaythrough', checkAllAudiosLoaded);
+            audio.addEventListener('error', () => console.error('Erreur lors du chargement de l\'audio : ' + url));
+        }
+
+        loadAudio(successSound, 'success.mp3');
+        loadAudio(errorSound, 'error.mp3');
+        loadAudio(joySound, 'joy.mp3');
+        loadAudio(alertSound, 'alert.mp3');
 
         function askName() {
             playerName = prompt("Entrez votre nom :");
@@ -431,4 +455,9 @@
         startButton.addEventListener('click', startGame);
 
         // Rejouer
-        restart
+        restartButton.addEventListener('click', () => {
+            startGame();
+        });
+
+        // Volume Control
+        volumeSlider.addEventListener('input',
