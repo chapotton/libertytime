@@ -1,22 +1,64 @@
 <!DOCTYPE html>
-<html>
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Testez vos réflexes avec ce jeu tactile simple et amusant !">
+    <meta name="keywords" content="jeu, réflexes, tactile, discrimination, temps de réaction">
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
     <title>Test de Réflexe</title>
     <link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
-    <div id="gameScreen"></div>
-    <div id="score">
-        Temps de réaction moyen: <span id="averageReactionTime">0</span> ms<br>
-        Record: <span id="recordReactionTime">N/A</span> ms<br>
-        Succès: <span id="successCount">0</span><br>
-        Erreurs: <span id="errorCount">0</span>
-    </div>
-    <button id="startButton">Démarrer</button>
+    <header>
+        <div id="headerLeft">
+            Temps moyen: <span id="averageReactionTime">0</span> ms
+        </div>
+        <div id="headerCenter">
+            Record: <span id="recordReactionTime">N/A</span> ms
+        </div>
+        <div id="headerRight">
+            Temps restant: <span id="timeLeft">30</span> s
+        </div>
+    </header>
+
+    <main>
+        <div id="gameScreen" aria-label="Zone de jeu">
+            <div id="brickContainer"></div>
+        </div>
+
+        <aside id="controls">
+            <h2>Commandes</h2>
+            <p>Cliquez sur les points verts aussi vite que possible, mais évitez les points rouges !</p>
+            <button id="startButton">Démarrer le jeu</button>
+            <div id="difficulty">
+                Difficulté:
+                <select id="difficultySelect">
+                    <option value="facile">Facile</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="difficile">Difficile</option>
+                </select>
+            </div>
+            <div id="volumeControl">
+                Volume:
+                <input type="range" id="volumeSlider" min="0" max="1" step="0.1" value="0.5">
+            </div>
+        </aside>
+
+        <aside id="score">
+            <h2>Score</h2>
+            <p>Succès: <span id="successCount">0</span></p>
+            <p>Erreurs: <span id="errorCount">0</span></p>
+        </aside>
+    </main>
+
+    <footer>
+        <p>&copy; 2023 Mon Jeu de Réflexe</p>
+    </footer>
+
     <audio id="successSound" src="success.mp3" preload="auto"></audio>
     <audio id="errorSound" src="error.mp3" preload="auto"></audio>
+
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="script.js"></script>
