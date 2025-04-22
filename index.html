@@ -8,7 +8,7 @@
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <title>Test de Réflexe</title>
     <style>
-          body {
+      body {
             font-family: Arial, sans-serif;
             text-align: center;
             background-color: #ADD8E6;
@@ -126,6 +126,24 @@
         #topPlayers li {
             margin-bottom: 5px;
         }
+
+        #gameOverScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        #gameOverScreen img {
+            width: 200px;
+        }
     </style>
 </head>
 <body>
@@ -180,6 +198,12 @@
         </ol>
     </div>
 
+    <div id="gameOverScreen">
+        <img src="crying-cat.png" alt="Chat qui pleure">
+        <p>Vous avez touché un point rouge !</p>
+        <button id="restartButton">Rejouer</button>
+    </div>
+
     <footer>
         <p>&copy; Mon Jeu de Réflexe</p>
     </footer>
@@ -221,6 +245,8 @@
         const volumeSlider = document.getElementById('volumeSlider');
         const brickContainer = document.getElementById('brickContainer');
         const topPlayersList = document.getElementById('topPlayersList');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const restartButton = document.getElementById('restartButton');
 
         let startTime;
         let reactionTimes = [];
@@ -233,6 +259,7 @@
         let difficulty = "normal";
         let bricks = [];
         let pointCreationTime; // Temps de création du point
+        let bestReactionTime = Infinity; // Initialiser avec l'infini
 
         function askName() {
             playerName = prompt("Entrez votre nom :");
@@ -295,6 +322,12 @@
                 const reactionTime = new Date().getTime() - pointCreationTime;
                 reactionTimes.push(reactionTime);
                 successes++;
+
+                // Mettre à jour le meilleur temps de réaction
+                if (reactionTime < bestReactionTime) {
+                    bestReactionTime = reactionTime;
+                }
+
                 updateScore();
                 point.classList.add('success');
 
@@ -315,39 +348,35 @@
                 alertSound.play();
                 point.remove();
                 collapseBricks();
-                if (gameRunning) {
-                    createPoint();
-                }
+                endGame(true); // Terminer le jeu si un point rouge est touché
             }
         }
 
         function updateScore() {
-            // Calculer le temps de réaction moyen
+            // Calculer le temps de réaction moyen (uniquement pour les points verts)
             let total = 0;
+            let greenPointCount = 0;
             for (let i = 0; i < reactionTimes.length; i++) {
                 total += reactionTimes[i];
+                greenPointCount++;
             }
-            let avg = reactionTimes.length > 0 ? total / reactionTimes.length : 0;
+            let avg = greenPointCount > 0 ? total / greenPointCount : 0;
 
             averageReactionTime.innerText = avg.toFixed(0);
             successCount.innerText = successes;
             errorCount.innerText = errors;
 
+            // Afficher le meilleur temps de réaction
+            recordReactionTime.innerText = bestReactionTime === Infinity ? "N/A" : bestReactionTime.toFixed(0) + " ms";
+
             // Mettre à jour le record dans Firebase
             if (playerName) {
                 db.ref('records').child(playerName).set({
                     averageReactionTime: avg.toFixed(0),
+                    bestReactionTime: bestReactionTime === Infinity ? 0 : bestReactionTime.toFixed(0), // Enregistrer le meilleur temps
                     successCount: successes,
                     errorCount: errors,
-                    name: playerName // Enregistrer le nom du joueur
-                });
-
-                // Écouter les changements du record dans Firebase
-                db.ref('records').child(playerName).on('value', (snapshot) => {
-                    const data = snapshot.val();
-                    if (data) {
-                        recordReactionTime.innerText = data.averageReactionTime || "N/A";
-                    }
+                    name: playerName
                 });
             }
 
@@ -362,10 +391,12 @@
             reactionTimes = [];
             successes = 0;
             errors = 0;
+            bestReactionTime = Infinity; // Réinitialiser le meilleur temps
             updateScore();
             gameScreen.innerHTML = '';
             brickContainer.innerHTML = '';
             bricks = [];
+            gameOverScreen.style.display = 'none'; // Cacher l'écran de fin de jeu
             createPoint();
 
             // Démarrer le chronomètre
@@ -375,19 +406,29 @@
                 timeLeft--;
                 timeLeftDisplay.innerText = timeLeft;
                 if (timeLeft <= 0) {
-                    endGame();
+                    endGame(false); // Terminer le jeu normalement
                 }
             }, 1000);
         }
 
-        function endGame() {
+        function endGame(redPointTouched) {
             gameRunning = false;
             clearInterval(timerInterval);
-            // Afficher un message de fin de jeu ou un écran de score final
-            alert("Temps écoulé ! Votre score a été enregistré.");
+
+            if (redPointTouched) {
+                // Afficher l'écran de fin de jeu
+                gameOverScreen.style.display = 'flex';
+            } else {
+                alert("Temps écoulé ! Votre score a été enregistré.");
+            }
         }
 
         startButton.addEventListener('click', startGame);
+
+        // Rejouer
+        restartButton.addEventListener('click', () => {
+            startGame();
+        });
 
         // Volume Control
         volumeSlider.addEventListener('input', function() {
@@ -427,7 +468,7 @@
         }
 
         function updateTopPlayers() {
-            db.ref('records').orderByChild('averageReactionTime').limitToFirst(3).once('value', (snapshot) => {
+            db.ref('records').orderByChild('bestReactionTime').limitToFirst(3).once('value', (snapshot) => {
                 const players = snapshot.val();
                 const topPlayers = [];
 
@@ -436,30 +477,5 @@
                         topPlayers.push(players[key]);
                     }
 
-                    // Trier les joueurs par temps de réaction moyen (du plus rapide au plus lent)
-                    topPlayers.sort((a, b) => a.averageReactionTime - b.averageReactionTime);
-
-                    // Mettre à jour l'affichage des meilleurs joueurs
-                    const topPlayersListItems = topPlayersList.querySelectorAll('li');
-                    for (let i = 0; i < topPlayersListItems.length; i++) {
-                        if (topPlayers[i]) {
-                            topPlayersListItems[i].innerText = `${topPlayers[i].name}: ${topPlayers[i].averageReactionTime} ms`;
-                        } else {
-                            topPlayersListItems[i].innerText = "N/A";
-                        }
-                    }
-                } else {
-                    // S'il n'y a pas de joueurs enregistrés
-                    const topPlayersListItems = topPlayersList.querySelectorAll('li');
-                    for (let i = 0; i < topPlayersListItems.length; i++) {
-                        topPlayersListItems[i].innerText = "N/A";
-                    }
-                }
-            });
-        }
-
-        // Charger les meilleurs joueurs au chargement de la page
-        updateTopPlayers();
-    </script>
-</body>
-</html
+                    // Trier les joueurs par meilleur temps de réaction (du plus rapide au plus lent)
+                    topPlayers.sort((a,
