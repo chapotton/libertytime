@@ -7,7 +7,104 @@
     <meta name="keywords" content="jeu, réflexes, tactile, discrimination, temps de réaction">
     <link rel="icon" href="favicon.ico" type="image/x-icon">
     <title>Test de Réflexe</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        background-color: #ADD8E6; /* Fond bleu clair */
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px;
+        background-color: #f0f0f0;
+    }
+
+    #headerLeft, #headerCenter, #headerRight {
+        flex: 1;
+        text-align: center;
+        color: #000; /* Assurer la visibilité de l'écriture */
+    }
+
+    #headerLeft {
+        text-align: left;
+    }
+
+    #headerRight {
+        text-align: right;
+    }
+
+    main {
+        display: flex;
+        justify-content: space-around;
+        align-items: flex-start;
+        padding: 20px;
+    }
+
+    #gameScreen {
+        width: 60%;
+        height: 500px;
+        border: 1px solid black;
+        position: relative;
+        overflow: hidden; /* Pour empêcher les points de dépasser */
+    }
+
+    #brickContainer {
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .brick {
+        width: 40px;
+        height: 20px;
+        background-color: #8B4513; /* Couleur de la brique */
+        margin-bottom: 2px;
+        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+        transition: all 0.5s ease;
+    }
+
+    .brick.collapse {
+        transform: rotate(30deg) translateX(50px);
+        opacity: 0;
+    }
+
+    #controls, #score {
+        width: 20%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        color: #000; /* Assurer la visibilité de l'écriture */
+    }
+
+    .point {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        position: absolute;
+        cursor: pointer;
+        transition: transform 0.1s ease; /* Ajout d'une transition */
+    }
+
+    .green {
+        background-color: green;
+    }
+
+    .red {
+        background-color: red;
+    }
+
+    .point.success {
+        transform: scale(1.2); /* Animation de succès */
+    }
+
+    #difficulty, #volumeControl {
+        margin-top: 10px;
+        color: #000; /* Assurer la visibilité de l'écriture */
+    }
+    </style>
 </head>
 <body>
     <header>
@@ -53,7 +150,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2023 Mon Jeu de Réflexe</p>
+        <p>&copy; Mon Jeu de Réflexe</p>
     </footer>
 
     <audio id="successSound" src="success.mp3" preload="auto"></audio>
@@ -61,6 +158,223 @@
 
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="script.js"></script>
+    <script>
+      const firebaseConfig = {
+        apiKey: "AIzaSyDHC_PNIt5NU98c2fazaos0PJ1f8DodFKM",
+        authDomain: "tennis-performance-nicoach.firebaseapp.com",
+        databaseURL: "https://tennis-performance-nicoach-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "tennis-performance-nicoach",
+        storageBucket: "tennis-performance-nicoach.firebasestorage.app",
+        messagingSenderId: "45034481273",
+        appId: "1:45034481273:web:604c246e11a674c0dad6a8",
+        measurementId: "G-ZGZL2PGW09"
+      };
+
+      firebase.initializeApp(firebaseConfig);
+      const db = firebase.database();
+
+      const gameScreen = document.getElementById('gameScreen');
+      const averageReactionTime = document.getElementById('averageReactionTime');
+      const recordReactionTime = document.getElementById('recordReactionTime');
+      const successCount = document.getElementById('successCount');
+      const errorCount = document.getElementById('errorCount');
+      const startButton = document.getElementById('startButton');
+      const successSound = document.getElementById('successSound');
+      const errorSound = document.getElementById('errorSound');
+      const timeLeftDisplay = document.getElementById('timeLeft');
+      const difficultySelect = document.getElementById('difficultySelect');
+      const volumeSlider = document.getElementById('volumeSlider');
+      const brickContainer = document.getElementById('brickContainer');
+
+      let startTime;
+      let reactionTimes = [];
+      let successes = 0;
+      let errors = 0;
+      let gameRunning = false;
+      let playerName;
+      let gameDuration = 30; // Durée du jeu en secondes
+      let timerInterval;
+      let difficulty = "normal";
+      let bricks = [];
+
+      function askName() {
+        playerName = prompt("Entrez votre nom :");
+        if (!playerName) {
+          playerName = "Anonyme";
+        }
+      }
+
+      function createPoint() {
+        if (!gameRunning) return;
+
+        const point = document.createElement('div');
+        point.classList.add('point');
+
+        // Choisir aléatoirement vert ou rouge
+        const isGreen = Math.random() < 0.5;
+        if (isGreen) {
+          point.classList.add('green');
+        } else {
+          point.classList.add('red');
+        }
+
+        // Position aléatoire
+        const screenWidth = gameScreen.offsetWidth;
+        const screenHeight = gameScreen.offsetHeight;
+        const pointSize = 30;
+
+        const maxX = screenWidth - pointSize;
+        const maxY = screenHeight - pointSize;
+
+        point.style.top = Math.random() * maxY + 'px';
+        point.style.left = Math.random() * maxX + 'px';
+
+        if (!isGreen) {
+          // Faire disparaître le point rouge après un délai aléatoire entre 3 et 6 secondes
+          const disappearTime = (Math.random() * 3 + 3) * 1000;
+          setTimeout(() => {
+            if (point && point.parentNode === gameScreen) {
+              gameScreen.removeChild(point);
+              if (gameRunning) {
+                createPoint(); // Créer un nouveau point
+              }
+            }
+          }, disappearTime);
+        }
+
+        point.addEventListener('click', (e) => pointClicked(e, isGreen, point));
+        gameScreen.appendChild(point);
+        return point;
+      }
+
+      function pointClicked(e, isGreen, point) {
+        if (!gameRunning) return;
+
+        if (isGreen) {
+          // Calculer le temps de réaction
+          const reactionTime = new Date().getTime() - startTime;
+          reactionTimes.push(reactionTime);
+          successes++;
+          updateScore();
+          point.classList.add('success'); // Ajout de la classe pour l'animation
+          successSound.play(); // Jouer le son de succès
+          setTimeout(() => {
+            point.remove();
+            if (gameRunning) {
+              createPoint();
+            }
+            addBrick(); // Ajouter une brique
+          }, 200); // Supprimer le point après l'animation
+        } else {
+          errors++;
+          updateScore();
+          errorSound.play(); // Jouer le son d'erreur
+          point.remove();
+          collapseBricks(); // Faire écrouler les briques
+          if (gameRunning) {
+            createPoint();
+          }
+        }
+      }
+
+      function updateScore() {
+        // Calculer le temps de réaction moyen
+        let total = 0;
+        for (let i = 0; i < reactionTimes.length; i++) {
+          total += reactionTimes[i];
+        }
+        let avg = reactionTimes.length > 0 ? total / reactionTimes.length : 0;
+
+        averageReactionTime.innerText = avg.toFixed(0);
+        successCount.innerText = successes;
+        errorCount.innerText = errors;
+
+        // Mettre à jour le record dans Firebase
+        if (playerName) { // Vérifiez que playerName est défini
+          db.ref('records').child(playerName).set({
+            averageReactionTime: avg.toFixed(0),
+            successCount: successes,
+            errorCount: errors
+          });
+
+          // Écouter les changements du record dans Firebase
+          db.ref('records').child(playerName).on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+              recordReactionTime.innerText = data.averageReactionTime || "N/A";
+            }
+          });
+        }
+      }
+
+      function startGame() {
+        askName();
+        gameRunning = true;
+        startTime = new Date().getTime();
+        reactionTimes = [];
+        successes = 0;
+        errors = 0;
+        updateScore();
+        gameScreen.innerHTML = ''; // Nettoyer l'écran
+        brickContainer.innerHTML = ''; // Nettoyer les briques
+        bricks = [];
+        createPoint();
+
+        // Démarrer le chronomètre
+        let timeLeft = gameDuration;
+        timeLeftDisplay.innerText = timeLeft;
+        timerInterval = setInterval(() => {
+          timeLeft--;
+          timeLeftDisplay.innerText = timeLeft;
+          if (timeLeft <= 0) {
+            endGame();
+          }
+        }, 1000);
+      }
+
+      function endGame() {
+        gameRunning = false;
+        clearInterval(timerInterval);
+        // Afficher un message de fin de jeu ou un écran de score final
+        alert("Temps écoulé ! Votre score a été enregistré.");
+      }
+
+      startButton.addEventListener('click', startGame);
+
+      // Volume Control
+      volumeSlider.addEventListener('input', function() {
+        successSound.volume = this.value;
+        errorSound.volume = this.value;
+      });
+
+      // Difficulty Level
+      difficultySelect.addEventListener('change', function() {
+        difficulty = this.value;
+        // Implement difficulty logic here (e.g., change speed, point size, etc.)
+        console.log("Difficulty changed to: " + difficulty);
+      });
+
+      function addBrick() {
+        const brick = document.createElement('div');
+        brick.classList.add('brick');
+        brickContainer.appendChild(brick);
+        bricks.push(brick);
+
+        // Positionner les briques de manière décalée
+        const brickCount = bricks.length;
+        brick.style.marginLeft = (brickCount % 2 === 0 ? 10 : -10) + 'px';
+      }
+
+      function collapseBricks() {
+        bricks.forEach(brick => {
+          brick.classList.add('collapse');
+        });
+
+        setTimeout(() => {
+          brickContainer.innerHTML = '';
+          bricks = [];
+        }, 500);
+      }
+    </script>
 </body>
 </html>
